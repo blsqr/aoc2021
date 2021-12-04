@@ -1,4 +1,7 @@
-"""Solution for Day 01: Sonar Sweep"""
+"""Solution for Day 01: Sonar Sweep
+
+For puzzle text, see: https://adventofcode.com/2021/day/1
+"""
 
 from ..tools import relative_to_file
 
