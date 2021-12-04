@@ -3,28 +3,43 @@
 For puzzle text, see: https://adventofcode.com/2021/day/1
 """
 
-from ..tools import relative_to_file
+from ..tools import relative_to_file, load_input
 
-DATA_FILE = relative_to_file(__file__, "input.txt")
+DAY = 1
+INPUT_FILE = relative_to_file(__file__, "input.txt")
+TEST_INPUT = """
+    199
+    200
+    208
+    210
+    200
+    207
+    240
+    269
+    260
+    263
+"""
+
+INPUT_KWARGS = dict(day=DAY, fpath=INPUT_FILE, test_input=TEST_INPUT)
 
 
-def load_data(fpath: str) -> list:
-    """Loads the input data as list of integers"""
-    with open(fpath, mode="r") as f:
-        data = [int(v) for v in f.readlines()]
-    return data
+# -- Part 1 -------------------------------------------------------------------
 
-
-def solve_part1(data_file: str = DATA_FILE) -> int:
+def solve_part1(*, input_mode: str) -> int:
     """Computes the solution for part 1"""
-    data = load_data(data_file)
+    data = load_input(input_mode, **INPUT_KWARGS)
+    data = [int(v) for v in data]
+
     diff_was_positive = [v2 > v1 for v1, v2 in zip(data[:-1], data[1:])]
     return sum(diff_was_positive)
 
 
-def solve_part2(data_file: str = DATA_FILE) -> int:
+# -- Part 2 -------------------------------------------------------------------
+
+def solve_part2(*, input_mode: str) -> int:
     """Computes the solution for part 2"""
-    data = load_data(data_file)
+    data = load_input(input_mode, **INPUT_KWARGS)
+    data = [int(v) for v in data]
 
     # Want sliding window of sums of width 3
     sliding_window = [

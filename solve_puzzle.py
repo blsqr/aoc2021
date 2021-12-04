@@ -13,11 +13,12 @@ def load_solve_func(day: int, part: int) -> Callable:
 
     except (ImportError, AttributeError) as err:
         raise ValueError(
-            f"There is no solution for day {day}, part {part} available (yet)!"
-        )
+            f"There is no solution for day {day}, part {part} available yet! "
+            "... or there is a syntax error, see above!"
+        ) from err
 
 
-def get_solution(*, day: int, part: int) -> Any:
+def get_solution(*, day: int, part: int, input_mode: str) -> Any:
     """Loads and invokes the solve function for a certain day and solution part
     
     Args:
@@ -29,8 +30,8 @@ def get_solution(*, day: int, part: int) -> Any:
     print("Loading solution function ...")
     solve_func = load_solve_func(day, part)
 
-    print("Now computing solution ...")
-    result = solve_func()
+    print("Invoking solution function ...")
+    result = solve_func(input_mode=input_mode)
 
     print(f"\nThe solution is:  {result}\n")
     return result
@@ -48,6 +49,10 @@ if __name__ == "__main__":
         "part", type=int, help="Which part to calculate the solution for",
         choices=[1, 2]
     )
+    parser.add_argument(
+        "-i", "--input-mode", help="Which input mode to use",
+        default="file", choices=["file", "url", "test"]
+    )
     args = parser.parse_args()
 
-    get_solution(day=args.day, part=args.part)
+    get_solution(day=args.day, part=args.part, input_mode=args.input_mode)

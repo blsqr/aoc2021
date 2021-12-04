@@ -5,16 +5,21 @@ For puzzle text, see: https://adventofcode.com/2021/day/2
 
 from typing import Tuple, Callable
 
-from ..tools import relative_to_file
+from ..tools import relative_to_file, load_input
 
-DATA_FILE = relative_to_file(__file__, "input.txt")
+DAY = 2
+INPUT_FILE = relative_to_file(__file__, "input.txt")
+TEST_INPUT = """
+    forward 5
+    down 5
+    forward 8
+    up 3
+    down 8
+    forward 2
+"""
 
+INPUT_KWARGS = dict(day=DAY, fpath=INPUT_FILE, test_input=TEST_INPUT)
 
-def load_data(fpath: str):
-    """Loads the input data into a """
-    with open(fpath, mode="r") as f:
-        data = f.readlines()
-    return data
 
 # -- Part 1 -------------------------------------------------------------------
 
@@ -30,9 +35,9 @@ def parse_line_simple(line: str) -> Tuple[Callable, int]:
     return DIRECTION_OPERATORS[direction], int(arg)
 
 
-def solve_part1(data_file: str = DATA_FILE):
+def solve_part1(*, input_mode: str) -> int:
     """Computes the solution for part 1"""
-    data = load_data(data_file)
+    data = load_input(input_mode, **INPUT_KWARGS)
 
     # Parse the instructions into (operator, delta) pairs
     instructions = [parse_line_simple(line) for line in data]
@@ -62,9 +67,9 @@ def parse_line_with_aim(line: str) -> Tuple[Callable, int]:
     return DIRECTION_OPERATORS[direction], int(distance)
 
 
-def solve_part2(data_file: str = DATA_FILE) -> int:
+def solve_part2(*, input_mode: str) -> int:
     """Computes the solution for part 2"""
-    data = load_data(data_file)
+    data = load_input(input_mode, **INPUT_KWARGS)
 
     # Parse the instructions into (operator, delta) pairs
     instructions = [parse_line_with_aim(line) for line in data]
