@@ -1,7 +1,6 @@
 """Assorted tools that are used within the puzzle solutions"""
 
 import os
-from urllib.request import urlopen as _urlopen
 from typing import List
 
 # -----------------------------------------------------------------------------
@@ -50,7 +49,6 @@ def load_input(
             data = [line.strip() for line in f.readlines()]
 
     elif mode == "url":
-        # return [line.decode("utf-8").strip() for line in _urlopen(url)]
         raise NotImplementedError(
             "Loading input from URL is not possible yet because it requires "
             "to be logged in to Advent of Code ..."
@@ -66,3 +64,16 @@ def load_input(
 
     print("Input data loaded.\n")
     return data
+
+
+def bin2dec(binary_num: List[int]) -> int:
+    """Converts a binary number to a decimal.
+
+    Args:
+        binary_num (List[int]): Binary number as list of integer numbers.
+    """
+    dec = 0
+    for n, bit in enumerate(binary_num[::-1]):
+        dec += bool(bit) * 2**n
+
+    return dec
