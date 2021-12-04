@@ -64,16 +64,3 @@ def load_input(
 
     print("Input data loaded.\n")
     return data
-
-
-def bin2dec(binary_num: List[int]) -> int:
-    """Converts a binary number to a decimal.
-
-    Args:
-        binary_num (List[int]): Binary number as list of integer numbers.
-    """
-    dec = 0
-    for n, bit in enumerate(binary_num[::-1]):
-        dec += bool(bit) * 2**n
-
-    return dec

@@ -1,5 +1,6 @@
 """Provides a CLI for computing puzzle solutions"""
 
+import sys
 import argparse
 import importlib
 from typing import Callable, Any
@@ -31,7 +32,12 @@ def get_solution(*, day: int, part: int, input_mode: str) -> Any:
     solve_func = load_solve_func(day, part)
 
     print("Invoking solution function ...")
-    result = solve_func(input_mode=input_mode)
+    try:
+        result = solve_func(input_mode=input_mode)
+
+    except NotImplementedError:
+        print("\nOops, this is not implemented yet!\n")
+        sys.exit()
 
     print(f"\nThe solution is:  {result}\n")
     return result
