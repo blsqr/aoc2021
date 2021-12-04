@@ -7,8 +7,14 @@ from typing import Callable, Any
 
 def load_solve_func(day: int, part: int) -> Callable:
     """Loads the solution function for the specified day and part"""
-    module = importlib.import_module(f"puzzles.day{day:02d}.solution")
-    return getattr(module, f"solve_part{part:1d}")
+    try:
+        module = importlib.import_module(f"puzzles.day{day:02d}.solution")
+        return getattr(module, f"solve_part{part:1d}")
+
+    except (ImportError, AttributeError) as err:
+        raise ValueError(
+            f"There is no solution for day {day}, part {part} available (yet)!"
+        )
 
 
 def get_solution(*, day: int, part: int) -> Any:
@@ -18,7 +24,8 @@ def get_solution(*, day: int, part: int) -> Any:
         day (int): Which day to call the solution of
         part (int): Which part (typically: 1 or 2)
     """
-    print(f"\n--- AoC'21: Day {day:02d}, Part {part} ---")
+    print(f"\n--- AoC'21: Day {day:02d}, Part {part} ---\n")
+    
     print("Loading solution function ...")
     solve_func = load_solve_func(day, part)
 
