@@ -35,8 +35,8 @@ def get_solution(*, day: int, part: int, input_mode: str) -> Any:
     try:
         result = solve_func(input_mode=input_mode)
 
-    except NotImplementedError:
-        print("\nOops, this is not implemented yet!\n")
+    except NotImplementedError as err:
+        print(f"\nOops, this is not implemented yet! {err}\n")
         sys.exit()
 
     print(f"\nThe solution is:  {result}\n")
