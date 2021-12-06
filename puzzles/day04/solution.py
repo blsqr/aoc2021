@@ -2,6 +2,7 @@
 
 For puzzle text, see: https://adventofcode.com/2021/day/4
 """
+import copy
 from typing import Tuple, List
 
 import numpy as np
@@ -47,7 +48,7 @@ def parse_input(data: list) -> Tuple[List[int], List[np.ndarray]]:
     boards = []
     for line in data[2:]:
         if line:
-            # Current board needs to be extended
+            # Current board needs to be extended by one line
             current_board.append([int(v) for v in line.split()])
         else:
             # Board finished
@@ -69,30 +70,53 @@ def mark_boards(
         mask[board == num] = True
 
 
-def check_for_bingo(*, masks: List[np.ndarray]) -> List[int]:
-    """Returns the indices of the boards that have a full row or column masked
+def check_for_bingo(
+    *, masks: List[np.ndarray], winners: List[int] = None
+) -> Tuple[List[int], int]:
+    """Returns the indices of the boards that have a full row or column masked.
+    If ``winners`` is given, skips boards with those numbers; this allows to
+    keep track of the number in which the winners were found.
+    Also returns the change in number of winning boards.
     """
-    bingo_boards = []
+    winners = copy.copy(winners) if winners is not None else []
+    num_new_winners = 0
 
     for board_no, mask in enumerate(masks):
+        if board_no in winners:
+            # Already know: this is a winner, don't check further
+            continue
+
         for n in range(BOARD_SIZE):
             if all(mask[:,n]) or all(mask[n,:]):
-                bingo_boards.append(board_no)
+                winners.append(board_no)
+                num_new_winners += 1
+                break
 
-    return bingo_boards
+    return winners, num_new_winners
 
-def score_board(*, last_num: int, board: np.ndarray, mask: np.ndarray) -> int:
+
+def print_boards(boards, masks):
+    """Prints all boards and masks"""
+    print(f"\n--- All {len(boards)} boards ---\n")
+    for n, (board, mask) in enumerate(zip(boards, masks)):
+        print(f"Board {n}:\n{board}\n{mask}\n")
+    print("-"*20)
+
+
+def score_board(*, drawn_num: int, board: np.ndarray, mask: np.ndarray) -> int:
     """Computes the score for a certain board"""
-    print(f"The winning board is:\n{board}\n\n... with mask:\n{mask}")
+    print(f"Computing score of board:\n{board}\n\n... with mask:\n{mask}\n")
 
-    return np.sum(board[~mask] * last_num)
+    sum_unmarked = np.sum(board[~mask])
+    print(f"Sum unmarked:  {sum_unmarked},  Last drawn number: {drawn_num}")
+    return sum_unmarked * drawn_num
 
 
 
 # -- Part 1 -------------------------------------------------------------------
 
 def solve_part1(*, input_mode: str) -> int:
-    """Computes the solution for part 1"""
+    """Computes the solution for part 1: which board wins first?"""
     data = load_input(input_mode, **INPUT_KWARGS)
     numbers, boards = parse_input(data)
     print(f"Have {len(numbers)} to draw and {len(boards)} bingo boards. "
@@ -103,36 +127,76 @@ def solve_part1(*, input_mode: str) -> int:
     #   True:   number was selected
     masks = [np.zeros_like(board, dtype=bool) for board in boards]
 
-    for n, num in enumerate(numbers):
-        print(f"Draw #{n:<2d}:  {num:2d}", end="")
-        mark_boards(num, boards=boards, masks=masks)
+    for n, drawn_num in enumerate(numbers):
+        print(f"Draw #{n:<2d}:  {drawn_num:2d}", end="")
+        mark_boards(drawn_num, boards=boards, masks=masks)
 
-        bingo_boards = check_for_bingo(masks=masks)
-        if not bingo_boards:
-            print("  =>  no winner yet.")
+        winners, _ = check_for_bingo(masks=masks)
+        if not winners:
+            print("  =>  no Bingo yet")
             continue
 
-        elif len(bingo_boards) == 1:
-            winner_no = bingo_boards[0]
+        elif len(winners) == 1:
+            winner_no = winners[0]
             print(f"  =>  Bingo! on board {winner_no}\n")
             break
 
         else:
-            print(f"\nBingo! on multiple boards: {bingo_boards}")
+            print(f"  => Bingo! on multiple boards: {winners}")
             raise NotImplementedError("Expected only a single winner ...")
 
     else:
         raise RuntimeError("No winner!")
 
     return score_board(
-        last_num=num, board=boards[winner_no], mask=masks[winner_no]
+        drawn_num=drawn_num, board=boards[winner_no], mask=masks[winner_no]
     )
 
 
 # -- Part 2 -------------------------------------------------------------------
 
 def solve_part2(*, input_mode: str) -> int:
-    """Computes the solution for part 2"""
+    """Computes the solution for part 2: which board wins last?"""
     data = load_input(input_mode, **INPUT_KWARGS)
-    raise NotImplementedError()
+    numbers, boards = parse_input(data)
+    print(f"Have {len(numbers)} to draw and {len(boards)} bingo boards. "
+          "Let's play!")
+
+    winners = []
+    masks = [np.zeros_like(board, dtype=bool) for board in boards]
+    num_boards = len(boards)
+
+    for n, num in enumerate(numbers):
+        print(f"Draw #{n:<2d}:  {num:2d}", end="")
+        mark_boards(num, boards=boards, masks=masks)
+
+        winners, num_new = check_for_bingo(masks=masks, winners=winners)
+        # print_boards(boards, masks)
+        if not winners:
+            print("  =>  no Bingo yet")
+            continue
+
+        elif len(winners) < num_boards:
+            print(
+                "  =>  Bingo! on "
+                f"{len(winners):2d}/{num_boards:<2d} boards (Δ: {num_new})"
+            )
+            # print(f"  Winners:  {winners}")
+            continue
+
+        else:
+            last_winner = winners[-1]
+            print(
+                f"  =>  all Bingo (Δ: {num_new})! "
+                f"Last one on board {last_winner}\n"
+            )
+            # print(f"  Winners:  {winners}")
+            break
+
+    else:
+        raise RuntimeError("No winner!")
+
+    return score_board(
+        drawn_num=num, board=boards[last_winner], mask=masks[last_winner]
+    )
     
