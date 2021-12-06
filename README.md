@@ -14,3 +14,9 @@ There is a small CLI that takes care of invoking the corresponding scripts with 
 ```
 python solve_puzzle.py <day> <part>
 ```
+
+To use test input instead of (my) puzzle input, use:
+
+```
+python solve_puzzle.py <day> <part> -i test
+```
