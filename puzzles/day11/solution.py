@@ -33,12 +33,14 @@ def evaluate_flashes(energy: np.ndarray, has_flashed: np.ndarray) -> int:
     # Mark as flashed and set energy to zero for those that have flashed
     new_flashes = energy > 9
     energy[new_flashes] = 0
+
+    # Keep track of overall flashes
     has_flashed[new_flashes] = True
 
+    # Propagate energy to Moore neighbours
     delta_energy = np.zeros_like(energy)
     y_max, x_max = energy.shape
 
-    # Propagate energy to Moore neighbours
     it = np.nditer(new_flashes, flags=['multi_index'])
     for flashed in it:
         if not flashed:
@@ -57,8 +59,7 @@ def evaluate_flashes(energy: np.ndarray, has_flashed: np.ndarray) -> int:
         delta_energy[y, x] -= 1
 
     # print(f"\nnew_flashes:\n{new_flashes.astype(int)}")
-    # print(f"\ndelta_energy:\n{delta_energy.astype(int)}")
-    # print(f"\ndelta_energy & ~has_flashed:\n{(delta_energy & ~has_flashed).astype(int)}")
+    # print(f"\ndelta_energy:\n{delta_energy}")
     # Can now increment those areas that are in vicinity but have not flashed.
     # Flash evaluation will occur in next call of this function
     energy += delta_energy
@@ -100,5 +101,30 @@ def solve_part1(*, input_mode: str) -> int:
 def solve_part2(*, input_mode: str) -> int:
     """Computes the solution for part 2"""
     data = load_input(input_mode, **INPUT_KWARGS)
-    raise NotImplementedError()
+    energy = np.array([[int(v) for v in line] for line in data])
+    has_flashed = np.zeros_like(energy, dtype=bool)
+    print(
+        f"Have Dumbo Octopus energy map of shape {energy.shape}:\n{energy}\n"
+    )
+
+    num_flashes = 0
+    num_new_flashes = None
+    n = 0
+
+    while not np.all(has_flashed):
+        n += 1
+        energy += 1
+        num_new_flashes = None
+        has_flashed.fill(False)
+
+        while num_new_flashes != 0:
+            num_new_flashes = evaluate_flashes(energy, has_flashed)
+            num_flashes += num_new_flashes
+
+        energy[has_flashed] = 0
+        print(
+            f"After step {n:3d}:  {num_flashes:3d} flashes so far\n{energy}\n"
+        )
+
+    return n
     
