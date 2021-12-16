@@ -56,8 +56,12 @@ if __name__ == "__main__":
         choices=[1, 2]
     )
     parser.add_argument(
-        "-i", "--input-mode", help="Which input mode to use",
-        default="file", choices=["file", "url", "test"]
+        "-i", "--input-mode",
+        help=(
+            "Which input mode to use. Can be `file`, `url`, or `test`. "
+            "For test input, can use the format `test:<key>` to select "
+            "different kinds of test input."),
+        default="file",
     )
     args = parser.parse_args()
 
