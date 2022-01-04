@@ -2,6 +2,8 @@
 
 For puzzle text, see: https://adventofcode.com/2021/day/15
 """
+import itertools
+
 import numpy as np
 import numpy.ma as ma
 
@@ -25,9 +27,7 @@ TEST_INPUT = """
 INPUT_KWARGS = dict(day=DAY, fpath=INPUT_FILE, test_input=TEST_INPUT)
 
 
-# -- Part 1 -------------------------------------------------------------------
-
-def shortest_path_on_array(w: np.ndarray, *, start, end):
+def shortest_path_on_array(w: np.ndarray, *, start, end) -> tuple:
     """A Dijkstra shortest-path search on an array (i.e.: directed graph
     without edge weights and only node weights)
 
@@ -80,6 +80,27 @@ def shortest_path_on_array(w: np.ndarray, *, start, end):
     return distance.data, prev
 
 
+def mark_path(prev: np.ndarray, *, last: tuple) -> tuple:
+    """Follows the path through an object array, beginning at the last entry.
+    The path is marked in a boolean array.
+
+    Returns (path array, step count)
+    """
+    path = np.zeros_like(prev, dtype=bool)
+    path[last] = True
+
+    u = prev[last]
+    steps = 0
+    while prev[u] is not None:
+        path[u] = True
+        u = prev[u]
+        steps += 1
+    path[u] = True
+
+    return path, steps
+
+# -- Part 1 -------------------------------------------------------------------
+
 def solve_part1(*, input_mode: str) -> int:
     """Computes the solution for part 1"""
     data = load_input(input_mode, **INPUT_KWARGS)
@@ -103,5 +124,44 @@ def solve_part1(*, input_mode: str) -> int:
 def solve_part2(*, input_mode: str) -> int:
     """Computes the solution for part 2"""
     data = load_input(input_mode, **INPUT_KWARGS)
-    raise NotImplementedError()
+
+    # Construct 5x5 tiled risk map with risk levels incremented depending on
+    # position on the tile
+    nw = np.array([[int(v) for v in line] for line in data])
+    tiles = (5, 5)
+    tile_size_y, tile_size_x = nw.shape
+    nw = np.tile(nw, tiles)
+
+    for tile_y, tile_x in itertools.product(range(tiles[0]), range(tiles[1])):
+        sel = (
+            slice(tile_y * tile_size_y, (tile_y + 1) * tile_size_y),
+            slice(tile_x * tile_size_x, (tile_x + 1) * tile_size_x),
+        )
+
+        # Increment risk level depending on distance
+        nw[sel] += tile_y + tile_x
+
+        # Let 9 wrap back around to 1
+        nw[nw >= 10] -= 9
+
+    print(f"Have tiled risk level map of shape {nw.shape}")
+
+    # Can now compute the shortest path in the same way as above
+    start = (0, 0)
+    end = (nw.shape[0]-1, nw.shape[1]-1)
+    print(
+        f"Looking for path with lowest total risk from {start} to {end} ..."
+    )
+    distance, prev = shortest_path_on_array(nw, start=start, end=end)
+
+    if input_mode == "test":
+        path, step_count = mark_path(prev, last=end)
+        for y, line in enumerate(path):
+            for x, is_on_path in enumerate(line):
+                print("#" if is_on_path else ".", end="")
+                # print(nw[y,x] if is_on_path else ".", end="")
+                # print("." if is_on_path else nw[y,x], end="")
+            print("")
+
+    return int(distance[end])
     
