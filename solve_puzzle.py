@@ -1,10 +1,13 @@
 """Provides a CLI for computing puzzle solutions"""
 
 import sys
-import argparse
 import importlib
 from typing import Callable, Any
 
+import click
+
+
+# -----------------------------------------------------------------------------
 
 def load_solve_func(day: int, part: int) -> Callable:
     """Loads the solution function for the specified day and part"""
@@ -19,13 +22,28 @@ def load_solve_func(day: int, part: int) -> Callable:
         ) from err
 
 
-def get_solution(*, day: int, part: int, input_mode: str) -> Any:
-    """Loads and invokes the solve function for a certain day and solution part
-    
-    Args:
-        day (int): Which day to call the solution of
-        part (int): Which part (typically: 1 or 2)
-    """
+def check_input_mode(ctx, param, value):
+    """Makes sure that input mode has the expected form"""
+    if value in ("file", "test") or value.startswith("test:"):
+        return value
+    raise click.BadParameter(
+        f"Expected `file`, `test`, or `test:<key>`, but got '{value}'!"
+    )
+
+
+@click.command(context_settings=dict(help_option_names=("-h", "--help")))
+@click.argument("day", type=click.IntRange(1, 25))
+@click.argument("part", type=click.IntRange(1, 2))
+@click.option(
+    "-i", "--input-mode", default="file", callback=check_input_mode,
+    help=(
+        "Which input mode to use. Can be `file` or `test`. "
+        "For test input, can use the format `test:<key>` to select "
+        "different kinds of test input, `<key>` depending on the solution."
+    )
+)
+def get_solution(*, day: int, part: int, input_mode: str) -> int:
+    """Solves the Advent of Code 2021 puzzle for the selected DAY and PART."""
     print(f"\n--- AoC'21: Day {day:02d}, Part {part} ---\n")
     
     print("Loading solution function ...")
@@ -33,7 +51,7 @@ def get_solution(*, day: int, part: int, input_mode: str) -> Any:
 
     print("Invoking solution function ...")
     try:
-        result = solve_func(input_mode=input_mode)
+        result = solve_func(input_mode=input_mode.lower())
 
     except NotImplementedError as err:
         print(f"\nOops, this is not implemented yet! {err}\n")
@@ -44,25 +62,4 @@ def get_solution(*, day: int, part: int, input_mode: str) -> Any:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Solve Advent of Code 2021 puzzles"
-    )
-    parser.add_argument(
-        "day", type=int, help="Which day to calculate the solution for",
-        choices=list(range(1,26)),
-    )
-    parser.add_argument(
-        "part", type=int, help="Which part to calculate the solution for",
-        choices=[1, 2]
-    )
-    parser.add_argument(
-        "-i", "--input-mode",
-        help=(
-            "Which input mode to use. Can be `file`, `url`, or `test`. "
-            "For test input, can use the format `test:<key>` to select "
-            "different kinds of test input."),
-        default="file",
-    )
-    args = parser.parse_args()
-
-    get_solution(day=args.day, part=args.part, input_mode=args.input_mode)
+    get_solution()
